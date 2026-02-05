@@ -1,0 +1,16 @@
+import { ProjectConfig } from '../lib/types';
+
+export const PROJECT_CONFIG: ProjectConfig = {
+    clientId: 'client_base_001',
+    clientName: 'Wellness Growth Agency', // Example Base Client
+    primaryColor: 'hsl(142, 76%, 36%)', // Green-ish
+    targets: {
+        icp: 'Gimnasios, Centros de Crossfit y Estudios de Yoga que necesitan más clientes',
+        locations: ['Madrid', 'Barcelona', 'Valencia'],
+    },
+    enabledPlatforms: ['instagram', 'gmaps'], // LinkedIn disabled for this base example
+    searchSettings: {
+        defaultDepth: 10,
+        defaultMode: 'fast'
+    }
+};
