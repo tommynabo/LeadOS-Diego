@@ -83,12 +83,14 @@ export function SearchConfig({ config, onChange, onSearch, isSearching }: Search
                 onClick={() => onChange({ source: platform })}
                 title={PLATFORM_DESCRIPTIONS[platform]}
                 className={`flex-1 flex items-center justify-center rounded-md text-xs font-medium transition-all ${config.source === platform
-                  ? 'bg-background shadow-sm text-foreground'
+                  ? 'bg-background shadow-sm text-blue-600 font-semibold'
                   : 'text-muted-foreground hover:text-foreground'
                   }`}
                 disabled={isSearching}
               >
-                {PLATFORM_ICONS[platform]}
+                <span className={config.source === platform ? 'text-blue-600' : ''}>
+                  {PLATFORM_ICONS[platform]}
+                </span>
                 {PLATFORM_LABELS[platform]}
               </button>
             ))}

@@ -7,8 +7,8 @@ export type ResultCallback = (leads: Lead[]) => void;
 const GOOGLE_MAPS_SCRAPER = 'nwua9Gu5YrADL7ZDj';
 const CONTACT_SCRAPER = 'vdrmO1lXCkhbPjE9j';
 const DECISION_MAKER_FINDER = 'curious_coder/decision-maker-email-extractor';
-const LINKEDIN_SEARCH = 'curious_coder/linkedin-search-scraper';
-const LINKEDIN_PROFILE = 'dev_starter/linkedin-people-profile-scraper-rapid-2024';
+const LINKEDIN_PEOPLE_SEARCH = 'curious_coder~linkedin-people-search'; // LinkedIn People Search
+const LINKEDIN_PROFILE = 'anchor~linkedin-profile-scraper'; // LinkedIn Profile Scraper
 
 export class SearchService {
     private isRunning = false;
@@ -362,7 +362,7 @@ Sé conciso pero completo. Máximo 150 palabras total.`
                 searchType: 'people',
             };
 
-            const searchResults = await this.callApifyActor(LINKEDIN_SEARCH, searchInput, onLog);
+            const searchResults = await this.callApifyActor(LINKEDIN_PEOPLE_SEARCH, searchInput, onLog);
             onLog(`[LINKEDIN] ✅ ${searchResults.length} perfiles encontrados`);
 
             if (!this.isRunning || searchResults.length === 0) {
