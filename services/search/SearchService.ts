@@ -302,7 +302,7 @@ IMPORTANTE: Responde SOLO con JSON válido, sin explicaciones adicionales.`
         // STAGE 1: Google Maps scraping
         const mapsResults = await this.callApifyActor(GOOGLE_MAPS_SCRAPER, {
             searchStringsArray: [query],
-            maxCrawledPlacesPerSearch: Math.ceil((config.maxResults || 10) * 2), // Get more, then filter
+            maxCrawledPlacesPerSearch: Math.ceil((config.maxResults || 10) * 3), // Get 3x more, then filter
             language: 'es',
             includeWebsiteEmail: true,
             scrapeContacts: true,
@@ -351,12 +351,21 @@ IMPORTANTE: Responde SOLO con JSON válido, sin explicaciones adicionales.`
                 }, onLog);
 
                 for (const contact of contactResults) {
-                    const domain = contact.domain || '';
-                    const match = allLeads.find(l => l.website && domain.includes(l.website.replace('www.', '')));
-                    if (match?.decisionMaker && contact.emails?.length) {
-                        match.decisionMaker.email = contact.emails[0];
-                        if (contact.phones?.length) match.decisionMaker.phone = contact.phones[0];
-                        if (contact.linkedIn) match.decisionMaker.linkedin = contact.linkedIn;
+                    // Try to match by website domain more flexibly
+                    const contactUrl = contact.url || '';
+                    const match = allLeads.find(l => {
+                        if (!l.website) return false;
+                        const leadDomain = l.website.replace('www.', '').split('/')[0];
+                        return contactUrl.includes(leadDomain);
+                    });
+
+                    if (match && contact.emails?.length) {
+                        const newEmail = contact.emails[0];
+                        if (!match.decisionMaker) match.decisionMaker = {} as any;
+                        if (!match.decisionMaker.email) { // Only set if empty
+                            match.decisionMaker.email = newEmail;
+                            onLog(`[GMAIL] 📧 Email encontrado para ${match.companyName}: ${newEmail}`);
+                        }
                     }
                 }
             } catch (e: any) {
@@ -366,10 +375,20 @@ IMPORTANTE: Responde SOLO con JSON válido, sin explicaciones adicionales.`
 
         // ⚡ FILTER: ONLY leads with email (critical requirement!)
         onLog(`[DEBUG] Total leads antes de filtrar: ${allLeads.length}`);
-        onLog(`[DEBUG] Leads con email directo de Maps: ${allLeads.filter(l => l.decisionMaker?.email).length}`);
 
         const leadsWithEmail = allLeads.filter(l => l.decisionMaker?.email);
-        onLog(`[GMAIL] ✅ ${leadsWithEmail.length} leads CON EMAIL (descartados ${allLeads.length - leadsWithEmail.length} sin email)`);
+        const discardedCount = allLeads.length - leadsWithEmail.length;
+
+        onLog(`[GMAIL] ✅ ${leadsWithEmail.length} leads CON EMAIL`);
+        if (discardedCount > 0) {
+            onLog(`[GMAIL] 🗑️ ${discardedCount} descartados por falta de email (verificado automáticamente)`);
+        }
+
+        if (leadsWithEmail.length === 0) {
+            onLog(`[ERROR] ❌ No se encontraron leads con email. Intenta una búsqueda más específica.`);
+            onComplete([]);
+            return;
+        }
 
         // Limit to requested amount
         const finalLeads = leadsWithEmail.slice(0, config.maxResults || 10);
