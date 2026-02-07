@@ -8,7 +8,7 @@ interface LeadsTableProps {
 }
 
 const exportToCSV = (leads: Lead[]) => {
-  const headers = ['Empresa', 'Email', 'Teléfono', 'Web', 'Decisor', 'Cargo', 'LinkedIn', 'Ubicación', 'CUELLO DE BOTELLA', 'ANÁLISIS COMPLETO', 'MENSAJE PERSONALIZADO'];
+  const headers = ['Empresa', 'Email', 'Teléfono', 'Web', 'Decisor', 'Cargo', 'LinkedIn', 'Ubicación', 'CUELLO DE BOTELLA', '🧠 PERFIL PSICOLÓGICO', '🏢 MOMENTO EMPRESARIAL', '💡 ÁNGULO DE VENTA', 'MENSAJE PERSONALIZADO'];
   const escapeCSV = (value: string | undefined) => {
     if (!value) return '';
     const escaped = value.replace(/"/g, '""').replace(/\n/g, ' ').replace(/\r/g, '');
@@ -27,7 +27,9 @@ const exportToCSV = (leads: Lead[]) => {
     escapeCSV(l.decisionMaker?.linkedin),
     escapeCSV(l.location),
     escapeCSV(l.aiAnalysis?.generatedIcebreaker || 'Pendiente de detección'), // Bottleneck
-    escapeCSV(l.aiAnalysis?.fullAnalysis || l.aiAnalysis?.summary || 'Pendiente de análisis'),
+    escapeCSV(l.aiAnalysis?.psychologicalProfile || 'Pendiente'),
+    escapeCSV(l.aiAnalysis?.businessMoment || 'Pendiente'),
+    escapeCSV(l.aiAnalysis?.salesAngle || 'Pendiente'),
     escapeCSV(l.aiAnalysis?.fullMessage || 'Pendiente de generación') // Personalized message
   ].join(','));
 

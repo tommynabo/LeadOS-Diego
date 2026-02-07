@@ -38,7 +38,10 @@ export interface Lead {
     painPoints: string[];
     generatedIcebreaker: string;
     fullMessage: string;
-    fullAnalysis: string; // Comprehensive AI research: pain points, bottlenecks, entry angle
+    fullAnalysis: string; // Legacy/Fallback
+    psychologicalProfile: string; // New structured field
+    businessMoment: string;       // New structured field
+    salesAngle: string;           // New structured field
   };
   status: 'scraped' | 'enriched' | 'ready' | 'contacted' | 'replied';
 }

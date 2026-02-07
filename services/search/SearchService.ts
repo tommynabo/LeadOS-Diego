@@ -128,12 +128,18 @@ Responde SOLO con JSON:
     // ═══════════════════════════════════════════════════════════════════════════
     private async generateUltraAnalysis(lead: Lead, researchData: string): Promise<{
         fullAnalysis: string;
+        psychologicalProfile: string;
+        businessMoment: string;
+        salesAngle: string;
         personalizedMessage: string;
         bottleneck: string;
     }> {
         if (!this.openaiKey) {
             return {
                 fullAnalysis: `${lead.companyName}: ${lead.aiAnalysis?.summary || ''}`,
+                psychologicalProfile: 'Análisis no disponible (Sin API Key)',
+                businessMoment: 'Desconocido',
+                salesAngle: 'Genérico',
                 personalizedMessage: '',
                 bottleneck: ''
             };
@@ -177,14 +183,10 @@ SI HAY DATOS DE "ACTIVIDAD RECIENTE (Posts)":
 
 DEBES generar exactamente este JSON (sin markdown, solo JSON puro):
 {
-  "fullAnalysis": "Análisis de 200-300 palabras. ESTRUCTURA OBLIGATORIA:
-    1. 🧠 PERFIL PSICOLÓGICO: Tono, estilo, drivers mentales.
-    2. 🏢 MOMENTO EMPRESARIAL: Situación actual deducida.
-    3. 🎯 PUNTOS DE DOLOR: 3 problemas críticos.
-    4. 💡 ÁNGULO DE VENTA: Por qué flipearán con nosotros.",
-
+  "psychologicalProfile": "Describe su perfil en 2 frases (Ej: 'Visionario y directo. Valora la innovación...')",
+  "businessMoment": "Deduce en qué fase está la empresa (Ej: 'Expansión agresiva', 'Consolidación', 'Buscando eficiencia')",
+  "salesAngle": "El argumento ÚNICO para venderle a ESTA persona hoy.",
   "bottleneck": "Una frase BRUTAL y específica sobre su mayor freno o cuello de botella detectado.",
-  
   "personalizedMessage": "Mensaje de 100 palabras. Tono 'Coffee Chat' profesional. MENCIONA SU ÚLTIMO POST O ACTIVIDAD si existe."
 }
 
@@ -209,7 +211,10 @@ IMPORTANTE: Responde SOLO con JSON válido.`
                 if (jsonMatch) {
                     const parsed = JSON.parse(jsonMatch[0]);
                     return {
-                        fullAnalysis: parsed.fullAnalysis || `Análisis de ${lead.companyName}`,
+                        fullAnalysis: `🧠 PERFIL: ${parsed.psychologicalProfile}\n🏢 MOMENTO: ${parsed.businessMoment}\n💡 ÁNGULO: ${parsed.salesAngle}`, // Legacy format for safety
+                        psychologicalProfile: parsed.psychologicalProfile || 'No detectado',
+                        businessMoment: parsed.businessMoment || 'No detectado',
+                        salesAngle: parsed.salesAngle || 'Genérico',
                         personalizedMessage: parsed.personalizedMessage || `Hola ${lead.decisionMaker?.name || 'equipo'}, me gustaría contactar con vosotros.`,
                         bottleneck: parsed.bottleneck || 'Oportunidad de mejora detectada'
                     };
@@ -224,6 +229,9 @@ IMPORTANTE: Responde SOLO con JSON válido.`
         // Fallback if all AI attempts fail
         return {
             fullAnalysis: `Análisis automático no disponible. Revisar perfil de ${lead.companyName}.`,
+            psychologicalProfile: 'No disponible',
+            businessMoment: 'Desconocido',
+            salesAngle: 'Desconocido',
             personalizedMessage: `Hola ${lead.decisionMaker?.name || 'Responsable'}, he visto vuestra web ${lead.website} y me gustaría comentar una oportunidad de colaboración.`,
             bottleneck: 'Revisión manual requerida'
         };
@@ -346,7 +354,10 @@ IMPORTANTE: Responde SOLO con JSON válido.`
                 painPoints: [],
                 generatedIcebreaker: '',
                 fullMessage: '',
-                fullAnalysis: ''
+                fullAnalysis: '',
+                psychologicalProfile: '',
+                businessMoment: '',
+                salesAngle: ''
             },
             status: 'scraped' as const
         }));
@@ -421,6 +432,9 @@ IMPORTANTE: Responde SOLO con JSON válido.`
                 const analysis = await this.generateUltraAnalysis(lead, researchData);
 
                 lead.aiAnalysis.fullAnalysis = analysis.fullAnalysis;
+                lead.aiAnalysis.psychologicalProfile = analysis.psychologicalProfile;
+                lead.aiAnalysis.businessMoment = analysis.businessMoment;
+                lead.aiAnalysis.salesAngle = analysis.salesAngle;
                 lead.aiAnalysis.fullMessage = analysis.personalizedMessage;
                 lead.aiAnalysis.generatedIcebreaker = analysis.bottleneck;
                 lead.status = 'ready';
@@ -542,6 +556,9 @@ IMPORTANTE: Responde SOLO con JSON válido.`
                     aiAnalysis: {
                         summary: `Perfil Psicológico: ${analysis.bottleneck}`, // Using bottleneck field for psych summary
                         fullAnalysis: analysis.fullAnalysis,
+                        psychologicalProfile: analysis.psychologicalProfile,
+                        businessMoment: analysis.businessMoment,
+                        salesAngle: analysis.salesAngle,
                         fullMessage: analysis.personalizedMessage,
                         generatedIcebreaker: analysis.bottleneck,
                         painPoints: []
