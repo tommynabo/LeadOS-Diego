@@ -13,6 +13,7 @@ interface SearchConfigProps {
 export function SearchConfig({ config, onChange, onSearch, onStop, isSearching }: SearchConfigProps & { onStop: () => void }) {
   const [schedulerEnabled, setSchedulerEnabled] = useState(false);
   const [scheduleTime, setScheduleTime] = useState('09:00');
+  const [showTimePicker, setShowTimePicker] = useState(false);
 
   // Helper to handle manual number input clearly
   const handleNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -21,6 +22,21 @@ export function SearchConfig({ config, onChange, onSearch, onStop, isSearching }
     if (val < 1) val = 1;
     if (val > 50) val = 50;
     onChange({ maxResults: val });
+  };
+
+  // Generate hours (00-23)
+  const hours = Array.from({ length: 24 }, (_, i) => i.toString().padStart(2, '0'));
+  // Generate minutes (00, 15, 30, 45) for cleaner UI
+  const minutes = ['00', '15', '30', '45'];
+
+  const handleTimeSelect = (type: 'hour' | 'minute', value: string) => {
+    const [h, m] = scheduleTime.split(':');
+    if (type === 'hour') {
+      setScheduleTime(`${value}:${m}`);
+    } else {
+      setScheduleTime(`${h}:${value}`);
+      // Optional: Close picker after selecting minutes if you want auto-close
+    }
   };
 
   return (
@@ -122,35 +138,85 @@ export function SearchConfig({ config, onChange, onSearch, onStop, isSearching }
           </div>
         </div>
 
-        <div className="flex-1 flex flex-col items-center justify-center space-y-6">
-          <div className="text-center w-full">
-            {/* Custom Time Display driven by the hidden input */}
-            <div className="relative group/clock cursor-pointer">
+        <div className="flex-1 flex flex-col items-center justify-center space-y-6 relative">
+          <div className="text-center w-full z-10">
+            {/* Time Display Trigger */}
+            <div
+              className={`relative cursor-pointer transition-all ${schedulerEnabled ? 'opacity-100' : 'opacity-50 pointer-events-none'
+                }`}
+              onClick={() => { setSchedulerEnabled(true); setShowTimePicker(!showTimePicker); }}
+            >
               <div
-                className={`text-6xl font-bold tracking-tight mb-2 transition-colors select-none ${schedulerEnabled ? 'text-foreground' : 'text-muted-foreground'
-                  }`}
-                onClick={() => document.getElementById('time-picker')?.showPicker()}
+                className="text-6xl font-bold tracking-tight mb-2 select-none hover:scale-105 transition-transform"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (schedulerEnabled) setShowTimePicker(!showTimePicker);
+                }}
               >
                 {scheduleTime}
               </div>
-
-              {/* Standard Time Input - Styled to look clean or hidden but accessible */}
-              <input
-                id="time-picker"
-                type="time"
-                value={scheduleTime}
-                onChange={(e) => setScheduleTime(e.target.value)}
-                className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
-                disabled={!schedulerEnabled}
-              />
-              <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest bg-secondary/50 px-3 py-1 rounded-full inline-block group-hover/clock:bg-secondary transition-colors">
-                Click para cambiar hora
+              <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest bg-secondary/50 px-3 py-1 rounded-full inline-block group-hover:bg-secondary transition-colors">
+                {showTimePicker ? 'Cerrar Selector' : 'Cambiar Hora'}
               </p>
+
+              {/* Custom Dropdown Picker */}
+              {showTimePicker && schedulerEnabled && (
+                <div className="absolute top-full left-1/2 -translate-x-1/2 mt-4 bg-popover text-popover-foreground border border-border shadow-xl rounded-xl p-4 flex gap-4 z-50 animate-in fade-in zoom-in-95 duration-200 min-w-[200px]">
+
+                  {/* Hours Column */}
+                  <div className="flex-1">
+                    <span className="text-xs font-bold text-muted-foreground mb-2 block uppercase text-center">Hora</span>
+                    <div className="h-48 overflow-y-auto space-y-1 scrollbar-thin scrollbar-thumb-secondary pr-2">
+                      {hours.map(h => (
+                        <button
+                          key={h}
+                          onClick={() => handleTimeSelect('hour', h)}
+                          className={`w-full py-1.5 rounded-md text-sm font-medium transition-colors ${scheduleTime.startsWith(h)
+                            ? 'bg-primary text-primary-foreground'
+                            : 'hover:bg-secondary'
+                            }`}
+                        >
+                          {h}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="w-[1px] bg-border my-2" />
+
+                  {/* Minutes Column */}
+                  <div className="flex-1">
+                    <span className="text-xs font-bold text-muted-foreground mb-2 block uppercase text-center">Min</span>
+                    <div className="h-48 overflow-y-auto space-y-1 scrollbar-thin scrollbar-thumb-secondary">
+                      {minutes.map(m => (
+                        <button
+                          key={m}
+                          onClick={() => handleTimeSelect('minute', m)}
+                          className={`w-full py-1.5 rounded-md text-sm font-medium transition-colors ${scheduleTime.endsWith(m)
+                            ? 'bg-primary text-primary-foreground'
+                            : 'hover:bg-secondary'
+                            }`}
+                        >
+                          {m}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
+
+          {/* Backdrop to close picker */}
+          {showTimePicker && (
+            <div
+              className="fixed inset-0 z-0 bg-transparent"
+              onClick={() => setShowTimePicker(false)}
+            />
+          )}
         </div>
 
-        <div className="mt-8 flex items-center justify-between pt-6 border-t border-border">
+        <div className="mt-8 flex items-center justify-between pt-6 border-t border-border relative z-0">
           <span className="text-sm font-medium text-muted-foreground">Estado del Sistema</span>
           <button
             onClick={() => setSchedulerEnabled(!schedulerEnabled)}
