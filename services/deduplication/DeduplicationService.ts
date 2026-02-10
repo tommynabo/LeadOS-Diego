@@ -89,9 +89,18 @@ export class DeduplicationService {
             }
 
             // Add normalized company name
-            if (lead.companyName && lead.companyName !== 'Sin Nombre') {
+            if (lead.companyName) {
               const normalizedName = this.normalizeName(lead.companyName);
-              existingCompanyNames.add(normalizedName);
+              // IGNORE GENERIC NAMES from the "Existing" set
+              // This ensures we don't block new leads just because we have one "Empresa Desconocida"
+              if (
+                lead.companyName !== 'Sin Nombre' &&
+                lead.companyName !== 'Empresa Desconocida' &&
+                !normalizedName.includes('sin nombre') &&
+                !normalizedName.includes('empresa desconocida')
+              ) {
+                existingCompanyNames.add(normalizedName);
+              }
             }
           }
         }
@@ -141,9 +150,18 @@ export class DeduplicationService {
       }
 
       // Check company name (only if not already marked as duplicate)
-      if (!isDuplicate && candidate.companyName && candidate.companyName !== 'Sin Nombre') {
+      if (!isDuplicate && candidate.companyName) {
         const normalizedName = this.normalizeName(candidate.companyName);
-        if (existingCompanyNames.has(normalizedName)) {
+
+        // Skip check if the candidate itself has a generic name
+        // We allow multiple "Empresa Desconocida" leads because they might be different people
+        const isGeneric =
+          candidate.companyName === 'Sin Nombre' ||
+          candidate.companyName === 'Empresa Desconocida' ||
+          normalizedName.includes('sin nombre') ||
+          normalizedName.includes('empresa desconocida');
+
+        if (!isGeneric && existingCompanyNames.has(normalizedName)) {
           isDuplicate = true;
           duplicateReason = `company: ${candidate.companyName}`;
         }
