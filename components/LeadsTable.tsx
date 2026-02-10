@@ -98,12 +98,26 @@ export function LeadsTable({ leads, onViewMessage }: LeadsTableProps) {
                 </td>
                 <td className="px-6 py-4 align-top">
                   {lead.decisionMaker ? (
-                    <div className="flex flex-col">
-                      <div className="flex items-center gap-1.5">
-                        <User className="w-3 h-3 text-primary" />
-                        <span className="text-sm font-medium">{lead.decisionMaker.name}</span>
+                    <div className="flex flex-col gap-1">
+                      <div className="flex flex-col">
+                        <div className="flex items-center gap-1.5">
+                          <User className="w-3 h-3 text-primary" />
+                          <span className="text-sm font-medium">{lead.decisionMaker.name}</span>
+                        </div>
+                        <span className="text-xs text-muted-foreground pl-4.5">{lead.decisionMaker.role}</span>
                       </div>
-                      <span className="text-xs text-muted-foreground pl-4.5">{lead.decisionMaker.role}</span>
+
+                      {lead.decisionMaker.linkedin && (
+                        <a
+                          href={lead.decisionMaker.linkedin}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-xs text-[#0077b5] hover:underline flex items-center gap-1 pl-4.5 font-medium"
+                        >
+                          <span>LinkedIn Profile</span>
+                          <ExternalLink className="w-3 h-3" />
+                        </a>
+                      )}
                     </div>
                   ) : (
                     <span className="text-xs text-muted-foreground italic">Pendiente...</span>

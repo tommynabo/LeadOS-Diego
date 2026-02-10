@@ -13,7 +13,10 @@ interface SearchConfigProps {
 export function SearchConfig({ config, onChange, onSearch, onStop, isSearching }: SearchConfigProps & { onStop: () => void }) {
   const [schedulerEnabled, setSchedulerEnabled] = useState(false);
   const [scheduleTime, setScheduleTime] = useState('09:00');
+  const [schedulerEnabled, setSchedulerEnabled] = useState(false);
+  const [scheduleTime, setScheduleTime] = useState('09:00');
   const [showTimePicker, setShowTimePicker] = useState(false);
+  const [schedulerQuantity, setSchedulerQuantity] = useState(10); // Default 10 for auto-pilot
 
   // Helper to handle manual number input clearly
   const handleNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -214,6 +217,25 @@ export function SearchConfig({ config, onChange, onSearch, onStop, isSearching }
               onClick={() => setShowTimePicker(false)}
             />
           )}
+
+          {/* Scheduler Quantity Selector */}
+          <div className={`mt-8 w-full max-w-[200px] transition-all duration-300 ${schedulerEnabled ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'}`}>
+            <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider block mb-2">
+              Leads por día
+            </label>
+            <div className="flex items-center gap-2 bg-secondary/30 p-1.5 rounded-lg border border-border/50">
+              <input
+                type="range"
+                min="5"
+                max="50"
+                step="5"
+                value={schedulerQuantity}
+                onChange={(e) => setSchedulerQuantity(parseInt(e.target.value))}
+                className="w-full h-1.5 bg-secondary rounded-lg appearance-none cursor-pointer accent-green-500 hover:accent-green-600 transition-all"
+              />
+              <span className="font-mono text-sm font-bold w-6 text-center">{schedulerQuantity}</span>
+            </div>
+          </div>
         </div>
 
         <div className="mt-8 flex items-center justify-between pt-6 border-t border-border relative z-0">

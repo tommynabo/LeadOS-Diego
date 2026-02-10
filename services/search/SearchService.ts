@@ -582,15 +582,18 @@ IMPORTANTE: Responde SOLO con JSON válido.`
             }
 
             // STEP 2: Deep Analysis (Posts + Psych Profile)
-            const potentialLeads = linkedInProfiles.slice(0, (config.maxResults || 5)); // Process fewer for deep analysis speed
+            // We process candidates one by one until we hit the target count
             const finalLeads: Lead[] = [];
+            const targetCount = config.maxResults || 5;
+
+            // Actor for posts (from the JSON reference)
 
             // Actor for posts (from the JSON reference)
             const POSTS_SCRAPER = 'LQQIXN9Othf8f7R5n'; // apimaestro/linkedin-profile-posts
 
-            for (let i = 0; i < potentialLeads.length && this.isRunning; i++) {
-                const profile = potentialLeads[i];
-                onLog(`[RESEARCH] 🧠 Analizando candidato ${i + 1}/${potentialLeads.length}: ${profile.title.split(' - ')[0]}...`);
+            for (let i = 0; i < linkedInProfiles.length && this.isRunning; i++) {
+                const profile = linkedInProfiles[i];
+                onLog(`[RESEARCH] 🧠 Analizando candidato ${i + 1}/${linkedInProfiles.length}: ${profile.title.split(' - ')[0]}...`);
 
                 // Parse Basic Info
                 const titleParts = (profile.title || '').split(' - ');
@@ -663,6 +666,11 @@ IMPORTANTE: Responde SOLO con JSON válido.`
                 });
 
                 onLog(`[DEBUG] ✨ Added lead to final list: ${name}`);
+
+                if (finalLeads.length >= targetCount) {
+                    onLog(`[LINKEDIN] ✅ Objetivo alcanzado (${finalLeads.length} leads). Deteniendo análisis.`);
+                    break;
+                }
             }
 
             onLog(`[LINKEDIN] 🏁 Proceso finalizado. ${finalLeads.length} leads analizados y listos.`);
