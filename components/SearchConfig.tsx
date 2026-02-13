@@ -8,13 +8,18 @@ interface SearchConfigProps {
   onChange: (updates: Partial<SearchConfigState>) => void;
   onSearch: () => void;
   isSearching: boolean;
+  // Autopilot props
+  autopilotEnabled: boolean;
+  autopilotTime: string;
+  autopilotQuantity: number;
+  onAutopilotToggle: (enabled: boolean) => void;
+  onAutopilotTimeChange: (time: string) => void;
+  onAutopilotQuantityChange: (quantity: number) => void;
+  autopilotRanToday: boolean;
 }
 
-export function SearchConfig({ config, onChange, onSearch, onStop, isSearching }: SearchConfigProps & { onStop: () => void }) {
-  const [schedulerEnabled, setSchedulerEnabled] = useState(false);
-  const [scheduleTime, setScheduleTime] = useState('09:00');
-  const [showTimePicker, setShowTimePicker] = useState(false);
-  const [schedulerQuantity, setSchedulerQuantity] = useState(10); // Default 10 for auto-pilot
+export function SearchConfig({ config, onChange, onSearch, onStop, isSearching, autopilotEnabled, autopilotTime, autopilotQuantity, onAutopilotToggle, onAutopilotTimeChange, onAutopilotQuantityChange, autopilotRanToday }: SearchConfigProps & { onStop: () => void }) {
+  const [showTimePicker, setShowTimePicker] = useState(false); // Default 10 for auto-pilot
 
   // Helper to handle manual number input clearly
   const handleNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -125,17 +130,17 @@ export function SearchConfig({ config, onChange, onSearch, onStop, isSearching }
       {/* Piloto Automático */}
       <div className="bg-card border border-border rounded-xl p-6 shadow-sm flex flex-col relative overflow-hidden group hover:border-green-500/20 transition-all">
         {/* Status Indicator */}
-        <div className={`absolute top-0 right-0 p-6 transition-opacity ${schedulerEnabled ? 'opacity-100' : 'opacity-50'}`}>
-          <div className={`w-3 h-3 rounded-full shadow-[0_0_10px_currentColor] ${schedulerEnabled ? 'bg-green-500 text-green-500' : 'bg-gray-300 text-gray-300'}`} />
+        <div className={`absolute top-0 right-0 p-6 transition-opacity ${autopilotEnabled ? 'opacity-100' : 'opacity-50'}`}>
+          <div className={`w-3 h-3 rounded-full shadow-[0_0_10px_currentColor] ${autopilotEnabled ? 'bg-green-500 text-green-500' : 'bg-gray-300 text-gray-300'}`} />
         </div>
 
         <div className="flex items-center gap-3 mb-8">
-          <div className={`p-2 rounded-lg transition-colors ${schedulerEnabled ? 'bg-green-100 dark:bg-green-900/30' : 'bg-secondary'}`}>
-            <Clock className={`w-5 h-5 ${schedulerEnabled ? 'text-green-600 dark:text-green-400' : 'text-muted-foreground'}`} />
+          <div className={`p-2 rounded-lg transition-colors ${autopilotEnabled ? 'bg-green-100 dark:bg-green-900/30' : 'bg-secondary'}`}>
+            <Clock className={`w-5 h-5 ${autopilotEnabled ? 'text-green-600 dark:text-green-400' : 'text-muted-foreground'}`} />
           </div>
           <div>
             <h3 className="font-semibold text-lg">Piloto Automático</h3>
-            <p className="text-sm text-muted-foreground">Activo diariamente</p>
+            <p className="text-sm text-muted-foreground">{autopilotEnabled ? (autopilotRanToday ? 'Ejecutado hoy ✅' : 'Activo diariamente') : 'Desactivado'}</p>
           </div>
         </div>
 
@@ -143,25 +148,25 @@ export function SearchConfig({ config, onChange, onSearch, onStop, isSearching }
           <div className="text-center w-full z-10">
             {/* Time Display Trigger */}
             <div
-              className={`relative cursor-pointer transition-all ${schedulerEnabled ? 'opacity-100' : 'opacity-50 pointer-events-none'
+              className={`relative cursor-pointer transition-all ${autopilotEnabled ? 'opacity-100' : 'opacity-50 pointer-events-none'
                 }`}
-              onClick={() => { setSchedulerEnabled(true); setShowTimePicker(!showTimePicker); }}
+              onClick={() => { onAutopilotToggle(true); setShowTimePicker(!showTimePicker); }}
             >
               <div
                 className="text-6xl font-bold tracking-tight mb-2 select-none hover:scale-105 transition-transform"
                 onClick={(e) => {
                   e.stopPropagation();
-                  if (schedulerEnabled) setShowTimePicker(!showTimePicker);
+                  if (autopilotEnabled) setShowTimePicker(!showTimePicker);
                 }}
               >
-                {scheduleTime}
+                {autopilotTime}
               </div>
               <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest bg-secondary/50 px-3 py-1 rounded-full inline-block group-hover:bg-secondary transition-colors">
                 {showTimePicker ? 'Cerrar Selector' : 'Cambiar Hora'}
               </p>
 
               {/* Custom Dropdown Picker */}
-              {showTimePicker && schedulerEnabled && (
+              {showTimePicker && autopilotEnabled && (
                 <div className="absolute top-full left-1/2 -translate-x-1/2 mt-4 bg-popover text-popover-foreground border border-border shadow-xl rounded-xl p-4 flex gap-4 z-50 animate-in fade-in zoom-in-95 duration-200 min-w-[200px]">
 
                   {/* Hours Column */}
@@ -172,7 +177,7 @@ export function SearchConfig({ config, onChange, onSearch, onStop, isSearching }
                         <button
                           key={h}
                           onClick={() => handleTimeSelect('hour', h)}
-                          className={`w-full py-1.5 rounded-md text-sm font-medium transition-colors ${scheduleTime.startsWith(h)
+                          className={`w-full py-1.5 rounded-md text-sm font-medium transition-colors ${autopilotTime.startsWith(h)
                             ? 'bg-primary text-primary-foreground'
                             : 'hover:bg-secondary'
                             }`}
@@ -193,7 +198,7 @@ export function SearchConfig({ config, onChange, onSearch, onStop, isSearching }
                         <button
                           key={m}
                           onClick={() => handleTimeSelect('minute', m)}
-                          className={`w-full py-1.5 rounded-md text-sm font-medium transition-colors ${scheduleTime.endsWith(m)
+                          className={`w-full py-1.5 rounded-md text-sm font-medium transition-colors ${autopilotTime.endsWith(m)
                             ? 'bg-primary text-primary-foreground'
                             : 'hover:bg-secondary'
                             }`}
@@ -217,7 +222,7 @@ export function SearchConfig({ config, onChange, onSearch, onStop, isSearching }
           )}
 
           {/* Scheduler Quantity Selector */}
-          <div className={`mt-8 w-full max-w-[200px] transition-all duration-300 ${schedulerEnabled ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'}`}>
+          <div className={`mt-8 w-full max-w-[200px] transition-all duration-300 ${autopilotEnabled ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'}`}>
             <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider block mb-2">
               Leads por día
             </label>
@@ -227,11 +232,11 @@ export function SearchConfig({ config, onChange, onSearch, onStop, isSearching }
                 min="5"
                 max="50"
                 step="5"
-                value={schedulerQuantity}
-                onChange={(e) => setSchedulerQuantity(parseInt(e.target.value))}
+                value={autopilotQuantity}
+                onChange={(e) => onAutopilotQuantityChange(parseInt(e.target.value))}
                 className="w-full h-1.5 bg-secondary rounded-lg appearance-none cursor-pointer accent-green-500 hover:accent-green-600 transition-all"
               />
-              <span className="font-mono text-sm font-bold w-6 text-center">{schedulerQuantity}</span>
+              <span className="font-mono text-sm font-bold w-6 text-center">{autopilotQuantity}</span>
             </div>
           </div>
         </div>
@@ -239,12 +244,12 @@ export function SearchConfig({ config, onChange, onSearch, onStop, isSearching }
         <div className="mt-8 flex items-center justify-between pt-6 border-t border-border relative z-0">
           <span className="text-sm font-medium text-muted-foreground">Estado del Sistema</span>
           <button
-            onClick={() => setSchedulerEnabled(!schedulerEnabled)}
-            className={`relative inline-flex h-7 w-12 items-center rounded-full transition-all focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${schedulerEnabled ? 'bg-green-500 shadow-[0_0_15px_-3px_rgba(34,197,94,0.6)]' : 'bg-secondary'
+            onClick={() => onAutopilotToggle(!autopilotEnabled)}
+            className={`relative inline-flex h-7 w-12 items-center rounded-full transition-all focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${autopilotEnabled ? 'bg-green-500 shadow-[0_0_15px_-3px_rgba(34,197,94,0.6)]' : 'bg-secondary'
               }`}
           >
             <span
-              className={`${schedulerEnabled ? 'translate-x-6' : 'translate-x-1'
+              className={`${autopilotEnabled ? 'translate-x-6' : 'translate-x-1'
                 } inline-block h-5 w-5 transform rounded-full bg-white shadow-md transition-transform`}
             />
           </button>
