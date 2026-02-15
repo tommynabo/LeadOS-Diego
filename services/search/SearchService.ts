@@ -394,9 +394,9 @@ IMPORTANTE: Responde SOLO con JSON válido.`
             onLog(`[DEBUG] 🗺️ Maps devolvió ${mapsResults.length} resultados...`);
             
             // Analyze what Apify returned
-            const withWebsite = mapsResults.filter((r: any) => r.website).length;
-            const withEmail = mapsResults.filter((r: any) => r.email || r.emails?.length).length;
-            onLog(`[DEBUG] 📊 ${withWebsite} con website, ${withEmail} con email interno...`);
+            const withWebsiteRaw = mapsResults.filter((r: any) => r.website).length;
+            const withEmailRaw = mapsResults.filter((r: any) => r.email || r.emails?.length).length;
+            onLog(`[DEBUG] 📊 ${withWebsiteRaw} con website, ${withEmailRaw} con email interno...`);
 
             // Update pagination tracker
             totalScannedPreviously += mapsResults.length;
